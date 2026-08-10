@@ -1,0 +1,102 @@
+<div class="retro-page">
+  <!-- Hero Background -->
+  <div class="hero-bg" [style.background-image]="'url(' + backgroundImage() + ')'"></div>
+
+  <!-- Background Overlay -->
+  <div class="bg-overlay"></div>
+
+  <!-- Time Display (Top Left) -->
+  <div class="time-display-top">
+    <span class="status-dot"></span>
+    <span class="status-text">{{ onlineCount()}} listening</span>
+  </div>
+
+  <div class="status-indicator">
+    <span class="time-value">11<span class="blink">:</span>15<span class="time-am">pm</span></span>
+  </div>
+
+  <!-- Platform Links (Top Right) -->
+  <div class="platform-links">
+    <a href="https://music.youtube.com/playlist?list=PLaiV2Tdk0-5k" class="platform-link" title="Open on YouTube Music" target="_blank" rel="noopener noreferrer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+        <path
+          d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z" />
+      </svg>
+      <span class="hidden-mobile">YT Music</span>
+    </a>
+  </div>
+
+  <!-- Logo/Brand -->
+  <div class="brand-section">
+    <h1 class="brand-logo">RETRO सलून</h1>
+  </div>
+
+  <!-- Music Player Widget -->
+  <div class="player-container">
+    <div class="music-player-widget">
+
+      <!-- Album Art with Spinning Animation -->
+      <div class="album-artwork">
+        <div class="album-spin" [class.spinning]="isPlaying()">
+          <img [src]="albumArt()" alt="Album Art" class="album-image">
+        </div>
+        <div class="album-center"></div>
+      </div>
+
+      <!-- Player Info Section -->
+      <div class="player-info">
+
+        <!-- Song Title & Artist -->
+        <div class="song-metadata">
+          <p class="song-title">{{ title() }}</p>
+          <p class="artist-name">{{ artist() }}</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-bar" (click)="onProgressBarClick($event)">
+            <div class="progress-fill" [style.width.%]="progressPercent()"></div>
+          </div>
+          <div class="time-info">
+            <span class="current-time">{{ formatTime(currentTime()) }}</span>
+            <span class="time-separator"> / </span>
+            <span class="total-time">{{ formatTime(totalTime()) }}</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-section">
+          <button class="control-button prev-btn" (click)="previous()" aria-label="Previous">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+            </svg>
+          </button>
+
+          <button class="control-button play-btn" (click)="togglePlay()" [attr.aria-pressed]="isPlaying()">
+            @if (!isPlaying()) {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            }
+            @if (isPlaying()) {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+              </svg>
+            }
+          </button>
+
+          <button class="control-button next-btn" (click)="next()" aria-label="Next">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden YouTube Player -->
+  <div class="hidden-player">
+    <div id="youtube-player"></div>
+  </div>
+</div>

@@ -1,0 +1,454 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.retro-page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+}
+
+/* Hero Background */
+.hero-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.6s ease;
+  pointer-events: none;
+}
+
+/* Overlay — darkens/evens out whatever random photo landed, so the glass
+   pill and text stay legible regardless of the background's own contrast. */
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.05) 35%, rgba(0, 0, 0, 0.15) 60%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+}
+
+/* Time Display (Top Left) */
+.status-indicator {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  z-index: 20;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.time-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.time-am {
+  margin-left: 6px;
+  opacity: 0.7;
+}
+
+/* Status Indicator (Top Center) */
+.status-indicator {
+  position: fixed;
+  left: 50%;
+  top: 20px;
+  z-index: 20;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 30px;
+  font-weight: 500;
+  color: white;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.status-dot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  &::after {
+    content: '';
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.9);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-text {
+  font-variant-numeric: tabular-nums;
+  padding-left: 2px;
+}
+
+/* Platform Links (Top Right) */
+.platform-links {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+.platform-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s, background 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    opacity: 0.9;
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.hidden-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .platform-link {
+    width: auto;
+    padding: 8px 12px;
+    border-radius: 20px;
+    gap: 6px;
+  }
+
+  .hidden-mobile {
+    display: inline;
+    font-size: 13px;
+  }
+}
+
+/* Brand Section */
+.brand-section {
+  position: absolute;
+  top: 14vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+}
+
+.brand-logo {
+  font-size: clamp(48px, 8vw, 72px);
+  font-weight: 900;
+  margin: 0;
+  color: white;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  letter-spacing: -1px;
+}
+
+/* Player Container */
+.player-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 32px 24px;
+}
+
+/* Glass Morphism Player Widget — the Apple Music-style pill */
+.music-player-widget {
+  width: 100%;
+  max-width: 600px;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding: 12px 20px 12px 12px;
+  border-radius: 24px;
+
+  /* Glass effect */
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+
+  border: 1px solid rgba(255, 255, 255, 0.22);
+
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Album Artwork */
+.album-artwork {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+}
+
+.album-spin {
+  width: 100%;
+  height: 100%;
+  border-radius: 60px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  animation: spin 8s linear infinite;
+  animation-play-state: paused;
+
+  &.spinning {
+    animation-play-state: running;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.album-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.album-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+  z-index: 5;
+}
+
+/* Player Info */
+.player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.song-metadata {
+  margin: 0;
+}
+
+.song-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.artist-name {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Progress Section */
+.progress-section {
+  margin: 4px 0;
+}
+
+.progress-bar {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+
+  /* Slightly bigger hit area than the visible bar, for easier seeking */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -6px 0;
+  }
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: inherit;
+  transition: width 0.4s linear;
+}
+
+.time-info {
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Controls */
+.controls-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.control-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.play-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  font-weight: bold;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  &:hover {
+    background: white;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Hidden Player */
+.hidden-player {
+  display: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .player-container {
+    padding: 16px 12px;
+  }
+
+  .music-player-widget {
+    padding: 10px 16px 10px 10px;
+    gap: 12px;
+  }
+
+  .album-artwork {
+    width: 64px;
+    height: 64px;
+  }
+
+  .song-title {
+    font-size: 14px;
+  }
+
+  .control-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .play-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brand-logo {
+    font-size: 48px;
+  }
+}
