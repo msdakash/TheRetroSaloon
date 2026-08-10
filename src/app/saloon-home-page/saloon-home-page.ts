@@ -8,7 +8,6 @@ import { AfterViewInit, Component, NgZone, OnDestroy, computed, signal } from '@
   standalone: true,
 })
 export class SaloonHomePage implements AfterViewInit, OnDestroy {
-
   private player?: YT.Player;
   private progressTimer?: ReturnType<typeof setInterval>;
 
@@ -18,30 +17,34 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   // Swap these for curated shots (barbershop, retro market, neon signage, etc.)
   // whenever you're ready — a random one is picked on every load.
   private readonly backgroundPool = [
-    'https://picsum.photos/seed/saloon-red/1600/1000',
+    '\saloonArt.png',
     'https://picsum.photos/seed/saloon-neon/1600/1000',
     'https://picsum.photos/seed/saloon-market/1600/1000',
     'https://picsum.photos/seed/saloon-retro/1600/1000',
-    'https://picsum.photos/seed/saloon-street/1600/1000',
   ];
 
   isReady = signal(false);
   isPlaying = signal(false);
   isMuted = signal(false);
-  albumArt = signal('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%23d2a679" width="200" height="200"/%3E%3C/svg%3E');
+  albumArt = signal(
+    'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%23d2a679" width="200" height="200"/%3E%3C/svg%3E',
+  );
   backgroundImage = signal('');
   onlineCount = signal(Math.floor(Math.random() * 100) + 1);
 
   title = signal('Deluxe Rewind');
   artist = signal('90s Bollywood');
-  currentTime = signal(0);
+  currentMusicTime = signal(0);
   totalTime = signal(0);
-
+  now = new Date();
+  hours = this.now.getHours() % 12 || 12;
+  minutes = this.now.getMinutes().toString().padStart(2, '0');
+  AmOrPm = this.now.getHours() >= 12 ? 'PM' : 'AM';
   // Derived progress percentage (0–100), used for the fill bar width
   progressPercent = computed(() => {
     const total = this.totalTime();
     if (!total) return 0;
-    return Math.min(100, (this.currentTime() / total) * 100);
+    return Math.min(100, (this.currentMusicTime() / total) * 100);
   });
 
   constructor(private zone: NgZone) {
@@ -58,7 +61,6 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   }
 
   private loadYouTubeApi(): void {
-
     // API already loaded
     if (window.YT?.Player) {
       this.createPlayer();
@@ -67,7 +69,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
     // Avoid loading the script twice
     const existingScript = document.querySelector(
-      'script[src="https://www.youtube.com/iframe_api"]'
+      'script[src="https://www.youtube.com/iframe_api"]',
     );
 
     if (!existingScript) {
@@ -82,9 +84,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   }
 
   private createPlayer(): void {
-
     this.player = new YT.Player('youtube-player', {
-
       // Keep this compliant with YouTube's embed requirements.
       width: 480,
       height: 270,
@@ -96,11 +96,10 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
         controls: 1,
         playsinline: 1,
         origin: window.location.origin,
-        loop: 1
+        loop: 1,
       },
 
       events: {
-
         onReady: () => {
           this.zone.run(() => {
             this.isReady.set(true);
@@ -110,7 +109,6 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
         onStateChange: (event: YT.OnStateChangeEvent) => {
           this.zone.run(() => {
-
             const playing = event.data === YT.PlayerState.PLAYING;
             this.isPlaying.set(playing);
 
@@ -120,15 +118,12 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
               this.stopProgressTracking();
             }
 
-            if (
-              event.data === YT.PlayerState.PLAYING ||
-              event.data === YT.PlayerState.CUED
-            ) {
+            if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
               this.updateSongInfo();
             }
           });
-        }
-      }
+        },
+      },
     });
   }
 
@@ -190,7 +185,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     const seekTo = ratio * this.totalTime();
 
     this.player.seekTo(seekTo, true);
-    this.currentTime.set(seekTo);
+    this.currentMusicTime.set(seekTo);
   }
 
   formatTime(seconds: number): string {
@@ -204,7 +199,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     this.stopProgressTracking();
     this.progressTimer = setInterval(() => {
       if (this.player) {
-        this.currentTime.set(this.player.getCurrentTime());
+        this.currentMusicTime.set(this.player.getCurrentTime());
       }
     }, 500);
   }
@@ -225,7 +220,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     this.title.set(data.title || 'Unknown Song');
     this.artist.set(data.author || 'Unknown Artist');
 
-    this.currentTime.set(this.player.getCurrentTime());
+    this.currentMusicTime.set(this.player.getCurrentTime());
     this.totalTime.set(this.player.getDuration());
 
     const videoId = data.video_id;
