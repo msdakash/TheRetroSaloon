@@ -17,10 +17,10 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   // Swap these for curated shots (barbershop, retro market, neon signage, etc.)
   // whenever you're ready — a random one is picked on every load.
   private readonly backgroundPool = [
-    '\saloonArt.png',
-    'https://picsum.photos/seed/saloon-neon/1600/1000',
-    'https://picsum.photos/seed/saloon-market/1600/1000',
-    'https://picsum.photos/seed/saloon-retro/1600/1000',
+    '\streetViewArt.png',
+    '\chaiKiTapri.png',
+    '\chaiKiTapri2.png',
+    'chaiKiTapri2.png',
   ];
 
   isReady = signal(false);
@@ -32,7 +32,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   backgroundImage = signal('');
   onlineCount = signal(Math.floor(Math.random() * 100) + 1);
 
-  title = signal('Deluxe Rewind');
+  title = signal('Retro Chai Ki Tapri');
   artist = signal('90s Bollywood');
   currentMusicTime = signal(0);
   totalTime = signal(0);
@@ -232,5 +232,20 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.stopProgressTracking();
     this.player?.destroy();
+  }
+
+  changeBackground(): void {
+    let next = this.pickRandomBackground();
+
+    // avoid landing on the same image twice in a row
+    while (next === this.backgroundImage() && this.backgroundPool.length > 1) {
+      next = this.pickRandomBackground();
+    }
+
+    this.backgroundImage.set(next);
+  }
+
+  openLink(): void {
+    window.open('https://github.com/msdakash', '_blank');
   }
 }

@@ -475,3 +475,89 @@
     font-size: 48px;
   }
 }
+
+/* Change Background Button */
+.change-bg-btn {
+  // Mobile default: sits directly above the player pill
+  position: absolute;
+  right: 16px;
+  bottom: 100%;
+  margin-bottom: 12px;
+
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+
+  color: white;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: rotate(90deg);
+  }
+
+  &:active {
+    transform: rotate(90deg) scale(0.9);
+  }
+}
+
+/* Desktop/large screens: pin to the bottom-right corner of the page,
+   independent of the pill's (centered, narrower) position */
+@media (min-width: 770px) {
+  .change-bg-btn {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    margin-bottom: 0;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Watermark */
+.watermark {
+  // Large screens: pinned to the bottom-left corner of the page
+  position: fixed;
+  left: 20px;
+  bottom: 16px;
+  z-index: 20;
+
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  color: rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Small / short screens: move below the player pill instead of the
+   page corner, since the corner would sit under or behind the widget */
+@media (max-width: 600px) {
+  .watermark {
+    position: absolute;
+    left: 16px;
+    bottom: auto;
+    top: 100%; // just under player-container's own box
+    margin-top: 6px;
+    cursor: pointer;
+    font-size: 8px;
+  }
+}
