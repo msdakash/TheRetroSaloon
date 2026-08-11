@@ -12,7 +12,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   private progressTimer?: ReturnType<typeof setInterval>;
   private clockTimer?: ReturnType<typeof setInterval>;
   private readonly playlistId = 'PLaiV2Tdk0-5k';
-
+  private wakeLock: WakeLockSentinel | null = null;
   private readonly backgroundPool = [
     '\streetViewArt.png',
     '\chaiKiTapri.png',
@@ -29,6 +29,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   isShuffled = signal(false);
   backgroundImage = signal('');
   onlineCount = signal(Math.floor(Math.random() * 100) + 1);
+  needsTapToContinue = signal(false);
 
   title = signal('Retro Chai Ki Tapri');
   artist = signal('90s Bollywood');
@@ -52,6 +53,12 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.loadYouTubeApi();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.isPlaying()) {
+        this.requestWakeLock();
+      }
+    });
   }
 
   private pickRandomBackground(): string {
@@ -111,8 +118,11 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
             if (playing) {
               this.startProgressTracking();
+              this.requestWakeLock();
+              this.needsTapToContinue.set(false);
             } else {
               this.stopProgressTracking();
+              this.releaseWakeLock();
             }
 
             if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
@@ -121,11 +131,25 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
             if (event.data === YT.PlayerState.ENDED) {
               this.next();
+
+              // On iOS, the programmatic nextVideo() call above often gets silently
+              // blocked. Check shortly after — if playback didn't actually resume,
+              // surface a one-tap prompt (a real tap satisfies iOS's gesture requirement).
+              setTimeout(() => {
+                if (this.player?.getPlayerState() !== YT.PlayerState.PLAYING) {
+                  this.needsTapToContinue.set(true);
+                }
+              }, 1200);
             }
           });
         },
       },
     });
+  }
+
+  continuePlayback(): void {
+    this.player?.playVideo();
+    this.needsTapToContinue.set(false);
   }
 
   play(): void {
@@ -234,6 +258,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     if (this.clockTimer) {
       clearInterval(this.clockTimer);
     }
+    this.releaseWakeLock();
     this.player?.destroy();
   }
 
@@ -273,5 +298,28 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     } else {
       this.unshuffle();
     }
+  }
+
+  private async requestWakeLock(): Promise<void> {
+    try {
+      if ('wakeLock' in navigator) {
+        this.wakeLock = await navigator.wakeLock.request('screen');
+
+        // Some browsers release the lock automatically when the tab
+        // is backgrounded — this lets you know if that happened.
+        this.wakeLock.addEventListener('release', () => {
+          console.log('Wake lock released');
+        });
+      }
+    } catch (err) {
+      // Wake lock request can fail (e.g. low battery mode) — fail silently,
+      // it's a nice-to-have, not critical functionality.
+      console.warn('Wake lock request failed:', err);
+    }
+  }
+
+  private releaseWakeLock(): void {
+    this.wakeLock?.release();
+    this.wakeLock = null;
   }
 }

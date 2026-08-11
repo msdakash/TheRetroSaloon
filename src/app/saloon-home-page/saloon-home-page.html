@@ -157,6 +157,10 @@
     <div class="watermark" (click)="openLink()">Made by Akash Shaw</div>
   </div>
 
+  @if (needsTapToContinue()) {
+    <button class="continue-prompt" (click)="continuePlayback()">▶ Tap to continue playing</button>
+  }
+
   <!-- Hidden YouTube Player -->
   <div class="hidden-player">
     <div id="youtube-player"></div>
