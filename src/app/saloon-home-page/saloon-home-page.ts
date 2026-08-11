@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, NgZone, OnDestroy, computed, signal } from '@angular/core';
-
+import { ref, onValue, onDisconnect, set, push, serverTimestamp, off } from 'firebase/database';
+import { db } from '../firebase/firebase.config';
 @Component({
   selector: 'app-saloon-home-page',
   imports: [],
@@ -13,6 +14,8 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   private clockTimer?: ReturnType<typeof setInterval>;
   private readonly playlistId = 'PLaiV2Tdk0-5k';
   private wakeLock: WakeLockSentinel | null = null;
+  private myPresenceRef: ReturnType<typeof push> | null = null;
+  private presenceListRef = ref(db, 'presence');
   private readonly backgroundPool = [
     '\streetViewArt.png',
     '\chaiKiTapri.png',
@@ -28,7 +31,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   );
   isShuffled = signal(false);
   backgroundImage = signal('');
-  onlineCount = signal(Math.floor(Math.random() * 100) + 1);
+  onlineCount = signal(1);
   needsTapToContinue = signal(false);
 
   title = signal('Retro Chai Ki Tapri');
@@ -53,11 +56,23 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.loadYouTubeApi();
-
+    this.setupPresence();
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && this.isPlaying()) {
         this.requestWakeLock();
       }
+    });
+  }
+
+  private setupPresence(): void {
+    this.myPresenceRef = push(this.presenceListRef);
+
+    set(this.myPresenceRef, { connectedAt: serverTimestamp() });
+    onDisconnect(this.myPresenceRef).remove();
+
+    onValue(this.presenceListRef, (snapshot) => {
+      const count = snapshot.size;
+      this.zone.run(() => this.onlineCount.set(count || 1));
     });
   }
 
@@ -260,6 +275,10 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     }
     this.releaseWakeLock();
     this.player?.destroy();
+    if (this.myPresenceRef) {
+      set(this.myPresenceRef, null);
+    }
+    off(this.presenceListRef);
   }
 
   changeBackground(): void {
