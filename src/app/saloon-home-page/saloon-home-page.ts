@@ -10,12 +10,9 @@ import { AfterViewInit, Component, NgZone, OnDestroy, computed, signal } from '@
 export class SaloonHomePage implements AfterViewInit, OnDestroy {
   private player?: YT.Player;
   private progressTimer?: ReturnType<typeof setInterval>;
-
-  // YOUR PLAYLIST
+  private clockTimer?: ReturnType<typeof setInterval>;
   private readonly playlistId = 'PLaiV2Tdk0-5k';
 
-  // Swap these for curated shots (barbershop, retro market, neon signage, etc.)
-  // whenever you're ready — a random one is picked on every load.
   private readonly backgroundPool = [
     '\streetViewArt.png',
     '\chaiKiTapri.png',
@@ -29,6 +26,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   albumArt = signal(
     'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%23d2a679" width="200" height="200"/%3E%3C/svg%3E',
   );
+  isShuffled = signal(false);
   backgroundImage = signal('');
   onlineCount = signal(Math.floor(Math.random() * 100) + 1);
 
@@ -37,10 +35,10 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   currentMusicTime = signal(0);
   totalTime = signal(0);
   now = new Date();
-  hours = this.now.getHours() % 12 || 12;
-  minutes = this.now.getMinutes().toString().padStart(2, '0');
-  AmOrPm = this.now.getHours() >= 12 ? 'PM' : 'AM';
-  // Derived progress percentage (0–100), used for the fill bar width
+  hours = signal(0);
+  minutes = signal('00');
+  AmOrPm = signal('AM');
+
   progressPercent = computed(() => {
     const total = this.totalTime();
     if (!total) return 0;
@@ -49,6 +47,7 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
   constructor(private zone: NgZone) {
     this.backgroundImage.set(this.pickRandomBackground());
+    this.startClock();
   }
 
   ngAfterViewInit(): void {
@@ -61,13 +60,11 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
   }
 
   private loadYouTubeApi(): void {
-    // API already loaded
     if (window.YT?.Player) {
       this.createPlayer();
       return;
     }
 
-    // Avoid loading the script twice
     const existingScript = document.querySelector(
       'script[src="https://www.youtube.com/iframe_api"]',
     );
@@ -120,6 +117,10 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
             if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
               this.updateSongInfo();
+            }
+
+            if (event.data === YT.PlayerState.ENDED) {
+              this.next();
             }
           });
         },
@@ -175,7 +176,6 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
     this.isMuted.set(false);
   }
 
-  /** Click/tap anywhere on the progress bar to seek. */
   onProgressBarClick(event: MouseEvent): void {
     if (!this.player) return;
 
@@ -231,6 +231,9 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopProgressTracking();
+    if (this.clockTimer) {
+      clearInterval(this.clockTimer);
+    }
     this.player?.destroy();
   }
 
@@ -247,5 +250,28 @@ export class SaloonHomePage implements AfterViewInit, OnDestroy {
 
   openLink(): void {
     window.open('https://github.com/msdakash', '_blank');
+  }
+
+  private updateClock(): void {
+    const now = new Date();
+    const h = now.getHours() % 12 || 12;
+    this.hours.set(h);
+    this.minutes.set(now.getMinutes().toString().padStart(2, '0'));
+    this.AmOrPm.set(now.getHours() >= 12 ? 'PM' : 'AM');
+  }
+  private startClock(): void {
+    this.updateClock();
+    this.clockTimer = setInterval(() => this.updateClock(), 5000);
+  }
+
+  toggleShuffle(): void {
+    const next = !this.isShuffled();
+    this.isShuffled.set(next);
+
+    if (next) {
+      this.shuffle();
+    } else {
+      this.unshuffle();
+    }
   }
 }
